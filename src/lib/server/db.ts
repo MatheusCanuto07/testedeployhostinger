@@ -1,43 +1,43 @@
-import Database from 'better-sqlite3';
-import { mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import 'dotenv/config';
+
+import { env } from '$env/dynamic/private';
+import { desc, eq } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/mysql2';
+
+import { itemsTable } from '../../db/schema';
 
 export type Item = {
 	id: number;
 	title: string;
 };
 
-const dataDirectory = join(process.cwd(), 'data');
-mkdirSync(dataDirectory, { recursive: true });
+function getDatabase() {
+	const databaseUrl = env.DATABASE_URL ?? process.env.DATABASE_URL;
+  console.log(databaseUrl)
 
-const databaseFile = join(dataDirectory, 'crud.sqlite');
-const database = new Database(databaseFile);
+	if (!databaseUrl) {
+		throw new Error('DATABASE_URL não foi configurada.');
+	}
 
-database.pragma('journal_mode = WAL');
-database.exec(`
-	CREATE TABLE IF NOT EXISTS items (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		title TEXT NOT NULL
-	)
-`);
-
-const listItemsStatement = database.prepare('SELECT id, title FROM items ORDER BY id DESC');
-const createItemStatement = database.prepare('INSERT INTO items (title) VALUES (?)');
-const updateItemStatement = database.prepare('UPDATE items SET title = ? WHERE id = ?');
-const deleteItemStatement = database.prepare('DELETE FROM items WHERE id = ?');
-
-export function listItems(): Item[] {
-	return listItemsStatement.all() as Item[];
+	return drizzle({ connection: databaseUrl });
 }
 
-export function createItem(title: string): void {
-	createItemStatement.run(title);
+export async function listItems(): Promise<Item[]> {
+	const database = getDatabase();
+	return database.select().from(itemsTable).orderBy(desc(itemsTable.id));
 }
 
-export function updateItem(id: number, title: string): void {
-	updateItemStatement.run(title, id);
+export async function createItem(title: string): Promise<void> {
+	const database = getDatabase();
+	await database.insert(itemsTable).values({ title });
 }
 
-export function removeItem(id: number): void {
-	deleteItemStatement.run(id);
+export async function updateItem(id: number, title: string): Promise<void> {
+	const database = getDatabase();
+	await database.update(itemsTable).set({ title }).where(eq(itemsTable.id, id));
+}
+
+export async function removeItem(id: number): Promise<void> {
+	const database = getDatabase();
+	await database.delete(itemsTable).where(eq(itemsTable.id, id));
 }

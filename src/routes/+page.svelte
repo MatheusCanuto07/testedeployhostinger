@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>CRUD SQLite</title>
+	<title>CRUD MySQL com Drizzle</title>
 </svelte:head>
 
 <h1>CRUD com 1 campo</h1>

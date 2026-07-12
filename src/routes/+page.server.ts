@@ -16,9 +16,9 @@ function normalizeId(value: FormDataEntryValue | null): number | null {
 	return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
-export const load = () => {
+export const load = async () => {
 	return {
-		items: listItems(),
+		items: await listItems(),
 		testenv: env.testenv ?? ''
 	};
 };
@@ -35,7 +35,7 @@ export const actions = {
 			});
 		}
 
-		createItem(title);
+		await createItem(title);
 		throw redirect(303, '/');
 	},
 	update: async ({ request }) => {
@@ -50,7 +50,7 @@ export const actions = {
 			});
 		}
 
-		updateItem(id, title);
+		await updateItem(id, title);
 		throw redirect(303, '/');
 	},
 	delete: async ({ request }) => {
@@ -63,7 +63,7 @@ export const actions = {
 			});
 		}
 
-		removeItem(id);
+		await removeItem(id);
 		throw redirect(303, '/');
 	}
 };
