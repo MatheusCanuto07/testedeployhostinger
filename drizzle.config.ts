@@ -21,6 +21,7 @@ if (!dbHost || !dbPort || !dbUser || !dbPassword || !dbName) {
 }
 
 export const databaseUrl = `mysql://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${dbHost}:${dbPort}/${dbName}`;
+console.log("Database URL:", databaseUrl);
 
 export default defineConfig({
   out: "./drizzle",
